@@ -188,30 +188,6 @@ composer test
 
 Tests run on Orchestra Testbench against Laravel 12 and 13 on PHP 8.2 to 8.4 (see `.github/workflows/tests.yml`).
 
-Where things are (`resources/views/`):
-
-| File | Contents |
-| --- | --- |
-| `inspector.blade.php` | Page shell: CDN assets, settings JSON, includes the partials below. |
-| `partials/styles.blade.php` | All CSS (colours as `--ti-*` tokens, light and dark). |
-| `partials/theme-boot.blade.php` | Applies the saved theme before first paint. |
-| `partials/header.blade.php` | Header (Prune and theme buttons), type tabs, main container. |
-| `partials/prune-modal.blade.php` | Prune dialog markup. |
-| `partials/list-template.blade.php` | Filter form and results table (`<template>`). |
-| `partials/scripts/config.blade.php` | Reads the settings JSON, constants. |
-| `partials/scripts/helpers.blade.php` | DOM builder, badges, formatting, API client, errors. |
-| `partials/scripts/entry-types.blade.php` | One definition per Telescope type: summary fields and columns. |
-| `partials/scripts/list-state.blade.php` | Filters, matching, the batch scanner. |
-| `partials/scripts/list-view.blade.php` | Filter form wiring and list rendering. |
-| `partials/scripts/detail-view.blade.php` | Single entry page and its sections. |
-| `partials/scripts/related.blade.php` | "Recorded in the same batch" tabs. |
-| `partials/scripts/theme.blade.php` | Theme switch (auto / light / dark). |
-| `partials/scripts/prune.blade.php` | Prune dialog: presets, live count, confirm, delete. |
-| `partials/scripts/router.blade.php` | Clean URLs via the History API (`{path}/type`, `{path}/type/uuid/batch`). |
-
-PHP: `src/Http/Controllers` (page and prune endpoints), `src/Http/Requests/PruneRequest.php`
-(validation and the optional `pruneTelescope` gate), `src/Pruning` (`PruneFilter`, `EntryPruner`).
-
 All script partials run inside one function scope opened in `inspector.blade.php`, so they share
 helpers without globals. Each CSS/JS partial is wrapped in `@verbatim` so Blade never touches `{{ }}`
 or `@` inside it; keep that when adding a partial.
