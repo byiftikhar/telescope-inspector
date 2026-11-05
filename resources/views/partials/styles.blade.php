@@ -44,8 +44,12 @@
     }
 
     .ti-band a {
-    .ti-band a, .ti-card-h a { text-decoration: none; }
         color: var(--ti-sand);
+    }
+
+    .ti-band a,
+    .ti-card-h a {
+        text-decoration: none;
     }
 
     .ti-tabs {

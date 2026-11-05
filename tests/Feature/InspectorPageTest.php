@@ -37,6 +37,7 @@ class InspectorPageTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('<title>Telescope Inspector</title>', false);
+        $response->assertSee('<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,', false);
         $response->assertSee('"telescopeUrl":"\/telescope"', false);
         $response->assertSee('"defaultTake":25', false);
         $response->assertSee('"matchTarget":50', false);
