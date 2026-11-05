@@ -38,6 +38,7 @@ class InspectorPageTest extends TestCase
         $response->assertOk();
         $response->assertSee('<title>Telescope Inspector</title>', false);
         $response->assertSee('<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,', false);
+        $response->assertSee('"baseUrl":"\/telescope-inspector"', false);
         $response->assertSee('"telescopeUrl":"\/telescope"', false);
         $response->assertSee('"defaultTake":25', false);
         $response->assertSee('"matchTarget":50', false);
@@ -46,11 +47,24 @@ class InspectorPageTest extends TestCase
     }
 
     #[Test]
+    public function deep_links_open_the_same_page(): void
+    {
+        Telescope::auth(fn (): bool => true);
+
+        foreach (['/telescope-inspector/requests', '/telescope-inspector/jobs/9aa623e1-cf0b-4835-9c81-80f48f654b01/9aa623e1-cf0b-4835-9c81-80f48f654b02'] as $uri) {
+            $this->get($uri)
+                ->assertOk()
+                ->assertSee('"baseUrl":"\/telescope-inspector"', false);
+        }
+    }
+
+    #[Test]
     public function it_is_forbidden_when_telescope_denies_the_user(): void
     {
         Telescope::auth(fn (): bool => false);
 
         $this->get('/telescope-inspector')->assertForbidden();
+        $this->get('/telescope-inspector/requests')->assertForbidden();
     }
 
     #[Test]
@@ -61,9 +75,10 @@ class InspectorPageTest extends TestCase
 
         $this->get('/telescope-inspector')->assertNotFound();
 
-        $response = $this->get('/debug/inspector');
+        $response = $this->get('/debug/inspector/requests');
 
         $response->assertOk();
+        $response->assertSee('"baseUrl":"\/debug\/inspector"', false);
         $response->assertSee('"telescopeUrl":"\/tools\/telescope"', false);
         $response->assertSee('"defaultTake":10', false);
     }

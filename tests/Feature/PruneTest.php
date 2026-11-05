@@ -162,7 +162,11 @@ class PruneTest extends TestCase
     #[DefineEnvironment('disablePruning')]
     public function pruning_can_be_switched_off(): void
     {
-        $this->postJson('/telescope-inspector/prune', ['to' => '2026-11-05 23:59'])->assertNotFound();
+        $this->seedEntries();
+
+        // The path still exists as a page (GET), so a POST there is refused as "method not allowed".
+        $this->postJson('/telescope-inspector/prune', ['to' => '2026-11-05 23:59'])->assertMethodNotAllowed();
+        $this->assertSame(6, DB::table('telescope_entries')->count());
 
         $response = $this->get('/telescope-inspector');
 

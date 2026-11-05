@@ -22,7 +22,8 @@ migrations or jobs and changes nothing in how Telescope records.
   "Show all" button), copy buttons, and everything recorded in the same batch (queries with total time,
   slow count and repeated statements / possible N+1, logs, exceptions, jobs, HTTP calls...).
   For a job it also shows what ran inside the worker.
-- Shareable links: every list and entry has its own URL (`#/requests/<uuid>/<batch>`).
+- Shareable links: every list and entry has its own clean URL (`/telescope-inspector/requests`,
+  `/telescope-inspector/requests/<uuid>/<batch>`); refresh, Back/Forward and Ctrl-click work as usual.
 - Light and dark theme: slate in light mode, a
   GitHub-style "night" palette in dark mode, sky accent, Inter + JetBrains Mono. The header switch cycles
   Auto (follows the operating system), Light and Dark, and is remembered per browser. Press `/` to jump
@@ -157,7 +158,7 @@ Where things are (`resources/views/`):
 | `partials/scripts/related.blade.php` | "Recorded in the same batch" tabs. |
 | `partials/scripts/theme.blade.php` | Theme switch (auto / light / dark). |
 | `partials/scripts/prune.blade.php` | Prune dialog: presets, live count, confirm, delete. |
-| `partials/scripts/router.blade.php` | Hash routes (`#/type`, `#/type/uuid/batch`). |
+| `partials/scripts/router.blade.php` | Clean URLs via the History API (`{path}/type`, `{path}/type/uuid/batch`). |
 
 PHP: `src/Http/Controllers` (page and prune endpoints), `src/Http/Requests/PruneRequest.php`
 (validation and the optional `pruneTelescope` gate), `src/Pruning` (`PruneFilter`, `EntryPruner`).

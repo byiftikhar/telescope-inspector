@@ -16,6 +16,7 @@ class InspectorController
         return view('telescope-inspector::inspector', [
             'settings' => [
                 // Relative URLs, so the page works whatever host it is opened on.
+                'baseUrl' => rtrim(route('telescope-inspector', [], false), '/'),
                 'telescopeUrl' => Route::has('telescope') ? rtrim(route('telescope', [], false), '/') : null,
                 'loginUrl' => Route::has('login') ? route('login', [], false) : null,
                 'defaultTake' => (int) config('telescope-inspector.default_take', 25),

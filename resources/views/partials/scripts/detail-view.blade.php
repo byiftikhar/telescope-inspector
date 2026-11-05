@@ -76,7 +76,7 @@ async function renderDetail(type, uuid, batchId) {
 }
 
 function backLink(type) {
-    return el('div', { class: 'mb-2' }, [el('a', { href: '#/' + type, class: 'btn btn-sm btn-ti-outline' }, [el('i', { class: 'ri-arrow-left-line' }), ' Back to ' + TYPES[type].label])]);
+    return el('div', { class: 'mb-2' }, [el('a', { href: pageUrl(type), 'data-nav': '', class: 'btn btn-sm btn-ti-outline' }, [el('i', { class: 'ri-arrow-left-line' }), ' Back to ' + TYPES[type].label])]);
 }
 
 function sectionCard(key, value, content) {

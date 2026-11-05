@@ -5,7 +5,7 @@ function renderTabs(active) {
     const nav = document.getElementById('ti-tabs');
     nav.replaceChildren(...Object.entries(TYPES).map(([key, def]) => {
         const isActive = key === active;
-        return el('a', { href: '#/' + key, class: isActive ? 'active' : '', 'aria-current': isActive ? 'page' : null }, [
+        return el('a', { href: pageUrl(key), 'data-nav': '', class: isActive ? 'active' : '', 'aria-current': isActive ? 'page' : null }, [
             def.label,
             isActive ? el('span', { class: 'ti-tab-count', id: 'ti-tab-count' }) : null,
         ]);
@@ -83,9 +83,19 @@ function renderList(type) {
     }
 }
 
+// Ctrl/Cmd-click opens the entry in a new tab, like a link would.
+function openRow(event, url) {
+    if (event.ctrlKey || event.metaKey) {
+        window.open(url, '_blank', 'noopener');
+        return;
+    }
+    navigate(url);
+}
+
 // A clickable table row for one summary; opens the entry's detail page.
 function entryRow(type, row) {
-    const tr = el('tr', { onclick: () => { location.hash = '#/' + type + '/' + row.uuid + '/' + row.batchId; } });
+    const url = pageUrl(type, row.uuid, row.batchId);
+    const tr = el('tr', { onclick: (event) => openRow(event, url) });
     TYPES[type].columns.forEach((col) => tr.appendChild(el('td', { class: col.cls }, col.render(row))));
     return tr;
 }

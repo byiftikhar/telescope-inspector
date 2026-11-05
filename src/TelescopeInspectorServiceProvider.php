@@ -61,7 +61,8 @@ class TelescopeInspectorServiceProvider extends ServiceProvider
         Route::middleware($this->middleware())
             ->domain(config('telescope.domain'))
             ->group(function () use ($path): void {
-                Route::get($path, InspectorController::class)->name('telescope-inspector');
+                // One page; {view} is the client-side route (e.g. requests/<uuid>/<batch>) so links can be refreshed or shared.
+                Route::get($path.'/{view?}', InspectorController::class)->where('view', '.*')->name('telescope-inspector');
 
                 if (config('telescope-inspector.prune.enabled')) {
                     Route::post($path.'/prune/preview', [PruneController::class, 'preview'])->name('telescope-inspector.prune.preview');
