@@ -200,6 +200,9 @@ async function request(method, url, body, signal) {
     if (response.status === 419) {
         throw new ApiError('session', 'Your session expired. Reload the page.');
     }
+    if (response.status === 404) {
+        throw new ApiError('not-found', 'Not found.');
+    }
     if (response.status === 422) {
         const data = await response.json().catch(() => ({}));
         throw new ApiError('validation', data.message || 'Some of the values are not valid.');
@@ -223,10 +226,11 @@ function errorBox(error, title) {
     return box;
 }
 
+// Telescope's status for the current tab: "off" means only that tab's watcher is switched off.
 function setRecording(status) {
     const node = document.getElementById('ti-recording');
-    const tones = { enabled: 'ok', paused: 'warn', disabled: 'bad' };
-    const labels = { enabled: 'active', paused: 'paused', disabled: 'off' };
+    const tones = { enabled: 'ok', paused: 'warn', off: 'warn', disabled: 'bad' };
+    const labels = { enabled: 'active', paused: 'paused', off: 'watcher off', disabled: 'disabled' };
     node.className = 'ti-recording' + (tones[status] ? ' is-' + tones[status] : '');
     node.querySelector('.text').textContent = 'Recording: ' + (labels[status] || 'unknown');
 }

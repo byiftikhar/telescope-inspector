@@ -1,72 +1,88 @@
-# Telescope Inspector
+<p align="center">
+    <img src=".github/assets/banner.png" alt="Telescope Inspector: a fast, searchable viewer for Laravel Telescope" width="100%">
+</p>
 
-A lightweight, searchable viewer for [Laravel Telescope](https://laravel.com/docs/telescope).
+<p align="center">
+    <a href="https://packagist.org/packages/byiftikhar/telescope-inspector"><img src="https://img.shields.io/packagist/v/byiftikhar/telescope-inspector?label=packagist&color=0284c7" alt="Latest version on Packagist"></a>
+    <a href="https://packagist.org/packages/byiftikhar/telescope-inspector"><img src="https://img.shields.io/packagist/dt/byiftikhar/telescope-inspector?color=4f46e5" alt="Total downloads"></a>
+    <a href="https://github.com/byiftikhar/telescope-inspector/actions/workflows/tests.yml"><img src="https://img.shields.io/github/actions/workflow/status/byiftikhar/telescope-inspector/tests.yml?branch=main&label=tests" alt="Tests"></a>
+    <img src="https://img.shields.io/packagist/dependency-v/byiftikhar/telescope-inspector/php?color=777bb4" alt="PHP version">
+    <img src="https://img.shields.io/badge/laravel-12%20%7C%2013-ff2d20" alt="Laravel 12 and 13">
+    <img src="https://img.shields.io/badge/telescope-5.x-38bdf8" alt="Laravel Telescope 5.x">
+    <a href="LICENSE"><img src="https://img.shields.io/packagist/l/byiftikhar/telescope-inspector?color=10b981" alt="MIT License"></a>
+</p>
 
-Telescope's own screen loads 50 entries at a time **with their full content** (request payload, headers,
-session, response). One heavy request on a page can make that page several MB, and the screen stops
-loading. It also cannot search by route, job, status or user.
+<p align="center"><strong>Search, filter and prune Laravel Telescope entries without the page freezing on big requests.</strong></p>
 
-This package adds one page, `/telescope-inspector`, that reads **Telescope's own API** in small
-batches, keeps only a short summary of each entry, and lets you search and filter. It adds no tables,
-migrations or jobs and changes nothing in how Telescope records.
+> A fast, searchable viewer for Laravel Telescope, the debug assistant for the Laravel framework.
+
+## What is Telescope Inspector?
+
+[Laravel Telescope](https://laravel.com/docs/telescope) records every request, query, job, exception and
+log in your Laravel app. Its own screen, however, loads 50 entries at a time **with their full content**
+(request payload, headers, session, response). One heavy request on a page can make that page several MB,
+and the Telescope requests page stops loading. It also cannot search by route, status, job or user.
+
+Telescope Inspector adds one page, `/telescope-inspector`, that reads **Telescope's own API** in small
+batches, keeps only a short summary of each entry, and lets you search and filter everything Telescope
+records. It adds no tables, migrations or jobs, and changes nothing in how Telescope records.
+
+<picture>
+    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/screenshot-dark.png">
+    <img src=".github/assets/screenshot-light.png" alt="Telescope Inspector listing Laravel Telescope requests with method, status and duration filters">
+</picture>
 
 ## Features
 
-- Tabs for Requests, HTTP Client, Jobs, Commands, Schedule, Exceptions, Logs, Queries, Mail,
-  Notifications, Events, Cache and Redis.
-- Fetches 10, 25 or 50 entries at a time; big entries are never drawn in the list.
-- Search all words (route, controller, job class, SQL, message), plus filters: method, status
-  (2xx to 5xx), user (name, email or id), job status, log level, minimum duration, from/to time and
+- **Every Telescope type**: Requests, HTTP Client, Jobs, Commands, Schedule, Exceptions, Logs, Queries,
+  Mail, Notifications, Events, Cache and Redis.
+- **Never freezes**: fetches 10, 25 or 50 entries at a time; big entries are never drawn in the list.
+- **Search and filters**: all-words search (route, controller, job class, SQL, message), plus method,
+  status (2xx to 5xx), user (name, email or id), job status, log level, minimum duration, date range and
   Telescope tag. Scans older entries until 50 matches are found, with a Stop button.
-- Detail page: overview, collapsible sections (anything over 20 KB starts closed, over 50 KB shows a
-  "Show all" button), copy buttons, and everything recorded in the same batch (queries with total time,
-  slow count and repeated statements / possible N+1, logs, exceptions, jobs, HTTP calls...).
-  For a job it also shows what ran inside the worker.
-- Shareable links: every list and entry has its own clean URL (`/telescope-inspector/requests`,
-  `/telescope-inspector/requests/<uuid>/<batch>`); refresh, Back/Forward and Ctrl-click work as usual.
-- Light and dark theme: slate in light mode, a
-  GitHub-style "night" palette in dark mode, sky accent, Inter + JetBrains Mono. The header switch cycles
-  Auto (follows the operating system), Light and Dark, and is remembered per browser. Press `/` to jump
-  to the search box.
-- Its own page and endpoints are added to `telescope.ignore_paths` automatically, so using the
-  inspector never fills Telescope with entries about the inspector.
-- Prune: delete entries in a date range (server time), optionally only some entry types and keeping
-  exceptions. Quick ranges (older than 1 hour / 6 hours / 1 day / 7 days, or all entries), a live count
-  of what will be deleted, and a confirmation before anything is removed.
+- **Request detail**: overview, collapsible sections (anything over 20 KB starts closed, over 50 KB shows
+  "Show all"), copy buttons, and everything recorded in the same request: queries with total time, slow
+  count and repeated statements (possible N+1), logs, exceptions, jobs and HTTP calls. For a job it also
+  shows what ran inside the worker.
+- **Prune by date**: delete entries in a date range, optionally only some types and keeping exceptions.
+  Quick ranges (older than 1 hour, 6 hours, 1 day, 7 days, or all entries), a live count and a
+  confirmation before anything is removed.
+- **Light and dark theme**: Auto (follows the operating system), Light or Dark, remembered per browser.
+- **Clean, shareable URLs**: `/telescope-inspector/requests/<uuid>/<batch>`; refresh, Back/Forward and
+  Ctrl-click work as usual. Press `/` to jump to the search box.
+- **Stays out of the way**: its own page and endpoints are added to `telescope.ignore_paths`
+  automatically, so using the inspector never fills Telescope with entries about the inspector.
+
+<picture>
+    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/detail-dark.png">
+    <img src=".github/assets/detail-light.png" alt="Telescope Inspector request detail with payload, headers and related queries">
+</picture>
 
 ## Requirements
 
 - PHP 8.2+
-- Laravel 11, 12 or 13
-- `laravel/telescope` 5.x, installed and enabled
+- Laravel 12 or 13 (Laravel 11 may work, but Composer now blocks its releases over security advisories, so it is not tested)
+- [`laravel/telescope`](https://github.com/laravel/telescope) 5.x, installed and enabled
 
 ## Installation
 
-The package is private, so add its git repository to the project's `composer.json` once:
-
-```json
-"repositories": [
-    {
-        "type": "vcs",
-        "url": "git@github.com:byiftikhar/telescope-inspector.git"
-    }
-]
-```
-
-Colleagues without an SSH key on GitHub can use `https://github.com/byiftikhar/telescope-inspector.git`
-instead. If the repository is private, each of them needs read access to it.
-
-Then install it the same way Telescope is installed in that project:
+Install it the same way Telescope is installed in your project:
 
 ```bash
 # Telescope is a dev dependency (local only):
 composer require byiftikhar/telescope-inspector --dev
 
-# Telescope also runs on UAT / production:
+# Telescope also runs on staging / production:
 composer require byiftikhar/telescope-inspector
 ```
 
-The service provider is discovered automatically. Open `https://your-app/telescope-inspector`.
+The service provider is discovered automatically. Open `https://your-app.test/telescope-inspector`.
+
+## Updating
+
+```bash
+composer update byiftikhar/telescope-inspector
+```
 
 ## Access
 
@@ -85,11 +101,11 @@ and the entries' tags go with them. Every prune is written to the application lo
 
 - Needs Telescope's `database` storage driver.
 - "To" is a whole minute and is included: `To 10:30` removes everything up to 10:30:59.
-- To let only some people prune, define a `pruneTelescope` gate in the project, for example in
+- To let only some people prune, define a `pruneTelescope` gate, for example in
   `app/Providers/TelescopeServiceProvider.php`:
 
   ```php
-  Gate::define('pruneTelescope', fn ($user) => $user->hasRole('Super Admin'));
+  Gate::define('pruneTelescope', fn ($user) => in_array($user->email, ['admin@example.com']));
   ```
 
   When that gate exists the user must pass it as well as the Telescope gate. Without it, anyone who can
@@ -128,6 +144,32 @@ Telescope's own `path` and `domain` settings are picked up automatically.
 - An entry is still downloaded in full when it is part of a fetched batch; it is just never rendered.
 - Times are the server's time, as Telescope stores them.
 
+## FAQ
+
+**Why does the Laravel Telescope requests page not load, or load very slowly?**
+Telescope's list endpoint returns the full content of 50 entries at once. A few requests with large
+payloads or responses make that response several MB. Telescope Inspector asks for 10 to 50 entries at a
+time and only keeps a summary of each, so the list stays fast.
+
+**How do I search Laravel Telescope entries by URL, route or controller?**
+Type any part of the URI or controller in the Search box. All words must match, so `orders store` finds
+`POST /api/orders` handled by `OrderController@store`.
+
+**How do I filter Telescope requests by user, status code or duration?**
+Use the User (name, email or numeric id), Status (2xx to 5xx) and Min ms filters on the Requests tab.
+
+**How do I find slow queries or N+1 queries for one request?**
+Open the request. The Queries tab underneath shows total query time, slow queries and repeated
+statements.
+
+**How do I prune Laravel Telescope entries by date?**
+Click Prune, pick a quick range or a From/To date, optionally choose entry types, check the count and
+confirm. Pruning by schedule is still best done with `php artisan telescope:prune`.
+
+**Does it replace Laravel Telescope?**
+No. Telescope keeps recording exactly as before; this is a faster, searchable screen on top of its data.
+The "Open in Telescope" link is always one click away.
+
 ## Front-end assets
 
 Bootstrap 5.3.3, Remix Icon 4.5.0, bootstrap-select 1.14.0-beta3, flatpickr 4.6.13 (plus its dark theme),
@@ -139,14 +181,21 @@ All recorded data is rendered as text (`textContent`), never as HTML.
 
 ## Development
 
+```bash
+composer install
+composer test
+```
+
+Tests run on Orchestra Testbench against Laravel 12 and 13 on PHP 8.2 to 8.4 (see `.github/workflows/tests.yml`).
+
 Where things are (`resources/views/`):
 
 | File | Contents |
 | --- | --- |
 | `inspector.blade.php` | Page shell: CDN assets, settings JSON, includes the partials below. |
-| `partials/styles.blade.php` | All CSS (brand colours as `--ti-*` variables). |
+| `partials/styles.blade.php` | All CSS (colours as `--ti-*` tokens, light and dark). |
 | `partials/theme-boot.blade.php` | Applies the saved theme before first paint. |
-| `partials/header.blade.php` | Top band (Prune and theme buttons), type tabs, main container. |
+| `partials/header.blade.php` | Header (Prune and theme buttons), type tabs, main container. |
 | `partials/prune-modal.blade.php` | Prune dialog markup. |
 | `partials/list-template.blade.php` | Filter form and results table (`<template>`). |
 | `partials/scripts/config.blade.php` | Reads the settings JSON, constants. |
@@ -167,19 +216,21 @@ All script partials run inside one function scope opened in `inspector.blade.php
 helpers without globals. Each CSS/JS partial is wrapped in `@verbatim` so Blade never touches `{{ }}`
 or `@` inside it; keep that when adding a partial.
 
+## Issue reporting
 
-```bash
-composer install
-composer test
-```
+Found a bug or have an idea? [Open an issue](https://github.com/byiftikhar/telescope-inspector/issues/new).
+Please include your Laravel, Telescope and PHP versions.
 
-Tests run on Orchestra Testbench (checked on Laravel 13 / Telescope 5.27 and, with
-`composer update --prefer-lowest`, Laravel 12 / Telescope 5.5).
+## Contributing
 
-## Updating a project
+Pull requests are welcome. Please add or update tests for your change and run `composer test` before
+opening the PR. See [CHANGELOG.md](CHANGELOG.md) for what changed in each release.
 
-Tag a release in this repository (`git tag v1.1.0 && git push --tags`), then in each project:
+## Credits
 
-```bash
-composer update byiftikhar/telescope-inspector
-```
+- [Iftikhar](https://github.com/byiftikhar)
+- Built on top of [Laravel Telescope](https://github.com/laravel/telescope) by the Laravel team.
+
+## License
+
+Telescope Inspector is open-source software licensed under the [MIT license](LICENSE).

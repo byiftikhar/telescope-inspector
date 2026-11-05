@@ -15,8 +15,15 @@ async function fetchEntry(type, uuid, batchId) {
             return hit;
         }
     }
-    const data = await api('GET', type + '/' + encodeURIComponent(uuid));
-    return data.entry;
+    try {
+        const data = await api('GET', type + '/' + encodeURIComponent(uuid));
+        return data.entry;
+    } catch (error) {
+        if (error.kind === 'not-found') {
+            return null; // pruned, or a link from another environment
+        }
+        throw error;
+    }
 }
 
 function isScalar(value) {

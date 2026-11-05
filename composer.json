@@ -1,9 +1,43 @@
 {
     "name": "byiftikhar/telescope-inspector",
-    "description": "A lightweight, searchable viewer for Laravel Telescope that reads Telescope's own API in small batches.",
+    "description": "Fast, searchable viewer for Laravel Telescope, the Laravel debug assistant: search and filter requests, jobs, queries, logs and exceptions by route, user, status and duration, with dark mode and date-range pruning.",
     "type": "library",
-    "license": "proprietary",
-    "keywords": ["laravel", "telescope", "debugging", "monitoring"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Iftikhar",
+            "homepage": "https://github.com/byiftikhar",
+            "role": "Developer"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/byiftikhar/telescope-inspector/issues",
+        "source": "https://github.com/byiftikhar/telescope-inspector"
+    },
+    "keywords": [
+        "laravel",
+        "telescope",
+        "laravel-telescope",
+        "debugging",
+        "monitoring",
+        "debug",
+        "debugbar",
+        "profiler",
+        "developer-tools",
+        "laravel-package",
+        "telescope-viewer",
+        "search",
+        "filter",
+        "requests",
+        "queries",
+        "jobs",
+        "exceptions",
+        "logs",
+        "performance",
+        "prune",
+        "dark-mode"
+    ],
+    "homepage": "https://github.com/byiftikhar/telescope-inspector",
     "require": {
         "php": "^8.2",
         "illuminate/support": "^11.0|^12.0|^13.0",
