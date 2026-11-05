@@ -1,0 +1,41 @@
+{
+    "name": "byiftikhar/telescope-inspector",
+    "description": "A lightweight, searchable viewer for Laravel Telescope that reads Telescope's own API in small batches.",
+    "type": "library",
+    "license": "proprietary",
+    "keywords": ["laravel", "telescope", "debugging", "monitoring"],
+    "require": {
+        "php": "^8.2",
+        "illuminate/support": "^11.0|^12.0|^13.0",
+        "laravel/telescope": "^5.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^9.0|^10.0|^11.0",
+        "phpunit/phpunit": "^11.0|^12.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "ByIftikhar\\TelescopeInspector\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "ByIftikhar\\TelescopeInspector\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "ByIftikhar\\TelescopeInspector\\TelescopeInspectorServiceProvider"
+            ]
+        }
+    },
+    "scripts": {
+        "test": "phpunit"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
