@@ -23,6 +23,15 @@ migrations or jobs and changes nothing in how Telescope records.
   slow count and repeated statements / possible N+1, logs, exceptions, jobs, HTTP calls...).
   For a job it also shows what ran inside the worker.
 - Shareable links: every list and entry has its own URL (`#/requests/<uuid>/<batch>`).
+- Light and dark theme: slate in light mode, a
+  GitHub-style "night" palette in dark mode, sky accent, Inter + JetBrains Mono. The header switch cycles
+  Auto (follows the operating system), Light and Dark, and is remembered per browser. Press `/` to jump
+  to the search box.
+- Its own page and endpoints are added to `telescope.ignore_paths` automatically, so using the
+  inspector never fills Telescope with entries about the inspector.
+- Prune: delete entries in a date range (server time), optionally only some entry types and keeping
+  exceptions. Quick ranges (older than 1 hour / 6 hours / 1 day / 7 days, or all entries), a live count
+  of what will be deleted, and a confirmation before anything is removed.
 
 ## Requirements
 
@@ -65,6 +74,27 @@ open `/telescope` can open the inspector, and nobody else. Outside the `local` e
 decided by the `viewTelescope` gate in `app/Providers/TelescopeServiceProvider.php`. Make sure that gate
 does not simply `return true`, or every signed-in user can read every recorded request.
 
+## Pruning
+
+The Prune button calls two endpoints the package adds next to the page (with the same middleware):
+`POST {path}/prune/preview` (how many entries match) and `POST {path}/prune` (delete them). It deletes
+from Telescope's `telescope_entries` table in chunks, the same way `php artisan telescope:prune` does,
+and the entries' tags go with them. Every prune is written to the application log
+("Telescope Inspector: entries pruned", with the user id, range, types and count).
+
+- Needs Telescope's `database` storage driver.
+- "To" is a whole minute and is included: `To 10:30` removes everything up to 10:30:59.
+- To let only some people prune, define a `pruneTelescope` gate in the project, for example in
+  `app/Providers/TelescopeServiceProvider.php`:
+
+  ```php
+  Gate::define('pruneTelescope', fn ($user) => $user->hasRole('Super Admin'));
+  ```
+
+  When that gate exists the user must pass it as well as the Telescope gate. Without it, anyone who can
+  open Telescope can prune (Telescope's own screen can already clear everything).
+- To remove the feature entirely, set `TELESCOPE_INSPECTOR_PRUNE=false`.
+
 ## Configuration
 
 Optional. Publish the config file only if you need to change something:
@@ -80,6 +110,8 @@ php artisan vendor:publish --tag=telescope-inspector-config
 | `middleware` | | `null` | `null` reuses Telescope's middleware; or give your own array. |
 | `default_take` | | `25` | Entries fetched per request (10, 25 or 50). |
 | `match_target` | | `50` | Matches collected per Search / "Keep searching" click. |
+| `prune.enabled` | `TELESCOPE_INSPECTOR_PRUNE` | `true` | Show the Prune button and register its endpoints. |
+| `prune.chunk_size` | | `1000` | Rows deleted per statement while pruning. |
 
 Telescope's own `path` and `domain` settings are picked up automatically.
 
@@ -97,7 +129,8 @@ Telescope's own `path` and `domain` settings are picked up automatically.
 
 ## Front-end assets
 
-Bootstrap 5.3.3, Remix Icon 4.5.0, bootstrap-select 1.14.0-beta3, flatpickr 4.6.13 and jQuery 3.7.1 are
+Bootstrap 5.3.3, Remix Icon 4.5.0, bootstrap-select 1.14.0-beta3, flatpickr 4.6.13 (plus its dark theme),
+SweetAlert2 11.22.5 and jQuery 3.7.1 (plus the Inter and JetBrains Mono fonts from Google Fonts) are
 loaded from jsDelivr / code.jquery.com with exact versions and SRI hashes. Nothing needs to be
 published or built. The viewer's browser needs internet access.
 
@@ -111,7 +144,9 @@ Where things are (`resources/views/`):
 | --- | --- |
 | `inspector.blade.php` | Page shell: CDN assets, settings JSON, includes the partials below. |
 | `partials/styles.blade.php` | All CSS (brand colours as `--ti-*` variables). |
-| `partials/header.blade.php` | Top band, type tabs, main container. |
+| `partials/theme-boot.blade.php` | Applies the saved theme before first paint. |
+| `partials/header.blade.php` | Top band (Prune and theme buttons), type tabs, main container. |
+| `partials/prune-modal.blade.php` | Prune dialog markup. |
 | `partials/list-template.blade.php` | Filter form and results table (`<template>`). |
 | `partials/scripts/config.blade.php` | Reads the settings JSON, constants. |
 | `partials/scripts/helpers.blade.php` | DOM builder, badges, formatting, API client, errors. |
@@ -120,7 +155,12 @@ Where things are (`resources/views/`):
 | `partials/scripts/list-view.blade.php` | Filter form wiring and list rendering. |
 | `partials/scripts/detail-view.blade.php` | Single entry page and its sections. |
 | `partials/scripts/related.blade.php` | "Recorded in the same batch" tabs. |
+| `partials/scripts/theme.blade.php` | Theme switch (auto / light / dark). |
+| `partials/scripts/prune.blade.php` | Prune dialog: presets, live count, confirm, delete. |
 | `partials/scripts/router.blade.php` | Hash routes (`#/type`, `#/type/uuid/batch`). |
+
+PHP: `src/Http/Controllers` (page and prune endpoints), `src/Http/Requests/PruneRequest.php`
+(validation and the optional `pruneTelescope` gate), `src/Pruning` (`PruneFilter`, `EntryPruner`).
 
 All script partials run inside one function scope opened in `inspector.blade.php`, so they share
 helpers without globals. Each CSS/JS partial is wrapped in `@verbatim` so Blade never touches `{{ }}`

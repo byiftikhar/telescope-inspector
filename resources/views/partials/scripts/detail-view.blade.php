@@ -57,8 +57,8 @@ async function renderDetail(type, uuid, batchId) {
     const header = el('div', { class: 'ti-card' }, [
         el('div', { class: 'ti-card-h' }, [
             el('h6', { class: 'mono wrap', text: clip(TYPES[type].title(content) || type, 300) }),
-            content.response_status ? badge(content.response_status, httpTone(content.response_status)) : null,
-            content.status && type === 'jobs' ? badge(content.status, jobTone(content.status)) : null,
+            content.response_status ? statusBadge(content.response_status) : null,
+            content.status && type === 'jobs' ? badge(content.status, jobTone(content.status), true) : null,
             content.level ? badge(content.level, levelTone(content.level)) : null,
             el('a', { class: 'ms-auto', href: TELESCOPE_PATH + '/' + type + '/' + entry.id, target: '_blank', rel: 'noopener', text: 'Open in Telescope' }),
         ]),
@@ -105,7 +105,11 @@ function sectionCard(key, value, content) {
                 type: 'button',
                 class: 'btn btn-sm btn-ti-outline ms-auto py-0',
                 text: 'Copy',
-                onclick: (event) => { event.stopPropagation(); copyText(text, event.target); },
+                onclick: (event) => {
+                    event.stopPropagation();
+                    const button = event.currentTarget;
+                    copyText(text).then(() => flash(() => { button.textContent = 'Copied'; }, () => { button.textContent = 'Copy'; }));
+                },
             }),
         ]),
         body,
@@ -142,24 +146,5 @@ function longText(text) {
         onclick: () => { pre.textContent = text; more.remove(); },
     });
     return el('div', {}, [pre, el('div', { class: 'ti-note mt-1', text: 'Showing the first ' + bytesLabel(PREVIEW_LIMIT) + '.' }), more]);
-}
-
-function copyText(text, button) {
-    const done = () => {
-        const original = button.textContent;
-        button.textContent = 'Copied';
-        setTimeout(() => { button.textContent = original; }, 1200);
-    };
-    if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(text).then(done);
-        return;
-    }
-    const area = el('textarea', { style: 'position:fixed;opacity:0' });
-    area.value = text;
-    document.body.appendChild(area);
-    area.select();
-    document.execCommand('copy');
-    area.remove();
-    done();
 }
 @endverbatim

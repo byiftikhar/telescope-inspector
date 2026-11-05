@@ -26,8 +26,14 @@ function toSummary(entry, type) {
     summary.batchId = entry.batch_id;
     summary.createdAt = entry.created_at;
     summary.familyHash = entry.family_hash || content.hash || null;
+    summary.hostname = content.hostname || '';
     summary.haystack = Object.values(summary).filter((v) => typeof v === 'string' || typeof v === 'number').join(' ').toLowerCase();
     return summary;
+}
+
+// Entries fetched per request: the chosen "Fetch" size, or the configured default.
+function batchSize(filters) {
+    return Number(filters.take) || settings.defaultTake;
 }
 
 function hasClientFilters(f) {
@@ -92,7 +98,7 @@ async function scan(type, reset) {
 
     try {
         while (!st.exhausted && found < MATCH_TARGET) {
-            const body = { take: Number(f.take) || settings.defaultTake };
+            const body = { take: batchSize(f) };
             if (st.cursor) body.before = st.cursor;
             const tag = serverTag(f, type);
             if (tag) body.tag = tag;

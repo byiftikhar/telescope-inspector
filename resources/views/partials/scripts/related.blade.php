@@ -43,7 +43,7 @@ function loadRelated(other, entry, batchId, pane) {
     const tbody = el('tbody');
     const footer = el('div', { class: 'p-2 text-center' });
     const table = el('div', { class: 'table-responsive' }, el('table', { class: 'ti-table' }, [
-        el('thead', {}, el('tr', {}, TYPES[other].columns.map((col) => el('th', { text: col.label })).concat(other === 'queries' ? [el('th', { text: 'Repeats' })] : []))),
+        el('thead', {}, el('tr', {}, TYPES[other].columns.map((col) => el('th', { class: col.cls, scope: 'col', text: col.label })).concat(other === 'queries' ? [el('th', { text: 'Repeats' })] : []))),
         tbody,
     ]));
     pane.replaceChildren(filter, stats, table, footer);

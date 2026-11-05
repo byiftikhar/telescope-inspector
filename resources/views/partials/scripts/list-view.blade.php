@@ -3,7 +3,13 @@
 
 function renderTabs(active) {
     const nav = document.getElementById('ti-tabs');
-    nav.replaceChildren(...Object.entries(TYPES).map(([key, def]) => el('a', { href: '#/' + key, class: key === active ? 'active' : '', text: def.label })));
+    nav.replaceChildren(...Object.entries(TYPES).map(([key, def]) => {
+        const isActive = key === active;
+        return el('a', { href: '#/' + key, class: isActive ? 'active' : '', 'aria-current': isActive ? 'page' : null }, [
+            def.label,
+            isActive ? el('span', { class: 'ti-tab-count', id: 'ti-tab-count' }) : null,
+        ]);
+    }));
 }
 
 function readFilters(form) {
@@ -68,7 +74,7 @@ function renderList(type) {
     document.getElementById('ti-refresh').addEventListener('click', () => scan(type, true));
     document.getElementById('ti-list-title').textContent = TYPES[type].label;
 
-    document.getElementById('ti-thead').replaceChildren(el('tr', {}, TYPES[type].columns.map((col) => el('th', { text: col.label }))));
+    document.getElementById('ti-thead').replaceChildren(el('tr', {}, TYPES[type].columns.map((col) => el('th', { class: col.cls, scope: 'col', text: col.label }))));
 
     if (!st.loadedOnce) {
         scan(type, true);
@@ -80,7 +86,7 @@ function renderList(type) {
 // A clickable table row for one summary; opens the entry's detail page.
 function entryRow(type, row) {
     const tr = el('tr', { onclick: () => { location.hash = '#/' + type + '/' + row.uuid + '/' + row.batchId; } });
-    TYPES[type].columns.forEach((col) => tr.appendChild(el('td', {}, col.render(row))));
+    TYPES[type].columns.forEach((col) => tr.appendChild(el('td', { class: col.cls }, col.render(row))));
     return tr;
 }
 
@@ -99,33 +105,60 @@ function renderListBody(type) {
     tbody.replaceChildren(...st.rows.map((row) => entryRow(type, row)));
 
     const filtered = hasClientFilters(st.filters);
-    const progress = document.getElementById('ti-progress');
-    progress.textContent = filtered
-        ? 'Scanned ' + st.scanned.toLocaleString() + ' entries, ' + st.rows.length.toLocaleString() + ' match' + (st.running ? '. Scanning...' : '')
-        : st.rows.length.toLocaleString() + ' shown' + (st.running ? '. Loading...' : '');
+    const shown = st.rows.length.toLocaleString();
+    document.getElementById('ti-list-count').textContent = filtered ? shown + ' of ' + st.scanned.toLocaleString() + ' scanned' : shown + ' fetched';
+    const tabCount = document.getElementById('ti-tab-count');
+    if (tabCount) {
+        tabCount.textContent = shown;
+    }
     document.getElementById('ti-stop').classList.toggle('d-none', !st.running);
 
-    const footer = document.getElementById('ti-list-footer');
-    const parts = [];
+    renderListState(st);
+    renderFooterMeta(st, filtered);
+    renderFooterActions(type, st, filtered);
+}
+
+// Errors and "nothing found" sit between the table and the footer bar.
+function renderListState(st) {
+    const box = document.getElementById('ti-list-state');
     if (st.error) {
-        parts.push(errorBox(st.error));
-    } else if (st.running) {
-        parts.push(loader(loadingText(st, filtered)));
-    } else if (!st.rows.length) {
-        parts.push(el('div', { class: 'ti-empty', text: st.exhausted ? 'Nothing found.' : 'No entries yet.' }));
+        box.replaceChildren(el('div', { class: 'py-3' }, errorBox(st.error)));
+    } else if (!st.running && !st.rows.length) {
+        box.replaceChildren(el('div', { class: 'ti-empty', text: st.exhausted ? 'Nothing found.' : 'No entries yet.' }));
+    } else {
+        box.replaceChildren();
     }
-    if (!st.running && !st.exhausted && !st.error) {
+}
+
+function renderFooterMeta(st, filtered) {
+    const shown = el('strong', { text: st.rows.length.toLocaleString() });
+    const summary = filtered
+        ? ['Showing ', shown, ' matches of ', el('strong', { text: st.scanned.toLocaleString() }), ' scanned']
+        : ['Showing ', shown, ' fetched entries'];
+    const parts = [el('span', {}, summary)];
+    const host = st.rows.length ? st.rows[0].hostname : '';
+    if (host) {
+        parts.push(el('span', { class: 'ti-sep', text: '|' }));
+        parts.push(el('span', {}, [el('span', { class: 'ti-live-dot' }), 'Server: ', el('strong', { text: host })]));
+    }
+    document.getElementById('ti-footer-meta').replaceChildren(...parts);
+}
+
+function renderFooterActions(type, st, filtered) {
+    const parts = [];
+    if (st.running) {
+        parts.push(loader(loadingText(st, filtered)));
+    } else if (st.exhausted && st.rows.length) {
+        parts.push(el('span', { text: 'Reached the end of the recorded entries.' }));
+    } else if (!st.exhausted && !st.error) {
         parts.push(el('button', {
             type: 'button',
-            class: 'btn btn-sm btn-ti-outline mt-2',
-            text: filtered ? 'Keep searching older entries' : 'Load older',
+            class: 'btn btn-ti-outline btn-ti-more',
+            text: (filtered ? 'Keep searching' : 'Load older') + ' (' + batchSize(st.filters) + ')',
             onclick: () => scan(type, false),
         }));
     }
-    if (st.exhausted && st.rows.length) {
-        parts.push(el('div', { class: 'ti-note', text: 'Reached the end of the recorded entries.' }));
-    }
-    footer.replaceChildren(...parts);
+    document.getElementById('ti-list-footer').replaceChildren(...parts);
 }
 
 function loadingText(st, filtered) {

@@ -51,4 +51,21 @@ return [
 
     'match_target' => 50,
 
+    /*
+    |--------------------------------------------------------------------------
+    | Prune
+    |--------------------------------------------------------------------------
+    |
+    | The "Prune" button deletes entries in a date range (server time). It is
+    | protected by the same middleware as the page. To limit it further, define
+    | a "pruneTelescope" gate; when that gate exists it must also allow the user.
+    | chunk_size: rows deleted per statement, like Telescope's own prune.
+    |
+    */
+
+    'prune' => [
+        'enabled' => env('TELESCOPE_INSPECTOR_PRUNE', true),
+        'chunk_size' => 1000,
+    ],
+
 ];

@@ -18,6 +18,22 @@ function route() {
     window.scrollTo(0, 0);
 }
 
+// "/" focuses the search box, as in most developer tools, unless the user is typing or a dialog is open.
+function focusSearchShortcut(event) {
+    if (event.key !== '/' || event.ctrlKey || event.metaKey || event.altKey) {
+        return;
+    }
+    const active = document.activeElement;
+    const typing = active && (['INPUT', 'TEXTAREA', 'SELECT'].includes(active.tagName) || active.isContentEditable);
+    const search = document.getElementById('f-q');
+    if (typing || !search || document.querySelector('.modal.show, .swal2-container')) {
+        return;
+    }
+    event.preventDefault();
+    search.focus();
+}
+
+document.addEventListener('keydown', focusSearchShortcut);
 window.addEventListener('hashchange', route);
 route();
 @endverbatim

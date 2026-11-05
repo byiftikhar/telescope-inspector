@@ -1,39 +1,42 @@
 @verbatim
 /* ------------------------------------------------------------- entry types */
 
-const when = { key: 'createdAt', label: 'When', render: (row) => el('span', { class: 'mono text-nowrap', text: row.createdAt }) };
+const when = { key: 'createdAt', label: 'When', render: (row) => el('span', { class: 'muted text-nowrap', text: row.createdAt }) };
 
 const TYPES = {
     requests: {
         label: 'Requests',
+        entryType: 'request',
         summarize: (c) => ({ method: c.method, uri: c.uri, action: c.controller_action, status: c.response_status, duration: c.duration, memory: c.memory, user: userLabel(c.user), userEmail: (c.user && c.user.email) || '', userId: c.user ? c.user.id : null, ip: c.ip_address }),
         title: (c) => (c.method || '') + ' ' + (c.uri || ''),
         columns: [
             when,
-            { label: 'Method', render: (r) => badge(r.method, 'mute') },
+            { label: 'Method', render: (r) => badge(r.method, methodTone(r.method)) },
             { label: 'URI', render: (r) => uriCell(r.uri) },
-            { label: 'Action', render: (r) => el('div', { class: 'clip', title: r.action, text: r.action }) },
-            { label: 'Status', render: (r) => badge(r.status, httpTone(r.status)) },
-            { label: 'Duration', render: (r) => el('span', { class: 'text-nowrap', text: ms(r.duration) }) },
-            { label: 'User', render: (r) => el('span', { title: r.userEmail || (r.user ? '' : 'Guest'), text: r.user || 'Guest' }) },
+            { label: 'Action', render: (r) => actionCell(r.action) },
+            { label: 'Status', cls: 'text-center', render: (r) => statusBadge(r.status) },
+            { label: 'Duration', cls: 'text-end', render: (r) => durationCell(r.duration) },
+            { label: 'User', render: (r) => userCell(r) },
         ],
         numeric: (r) => r.duration,
     },
     'client-requests': {
         label: 'HTTP Client',
+        entryType: 'client_request',
         summarize: (c) => ({ method: c.method, uri: c.uri, status: c.response_status, duration: c.duration }),
         title: (c) => (c.method || '') + ' ' + (c.uri || ''),
         columns: [
             when,
-            { label: 'Method', render: (r) => badge(r.method, 'mute') },
+            { label: 'Method', render: (r) => badge(r.method, methodTone(r.method)) },
             { label: 'URI', render: (r) => uriCell(r.uri) },
-            { label: 'Status', render: (r) => (r.status ? badge(r.status, httpTone(r.status)) : '') },
-            { label: 'Duration', render: (r) => ms(r.duration) },
+            { label: 'Status', cls: 'text-center', render: (r) => (r.status ? statusBadge(r.status) : '') },
+            { label: 'Duration', cls: 'text-end', render: (r) => durationCell(r.duration) },
         ],
         numeric: (r) => r.duration,
     },
     jobs: {
         label: 'Jobs',
+        entryType: 'job',
         summarize: (c) => ({ name: c.name, queue: c.queue, connection: c.connection, jobStatus: c.status, tries: c.tries }),
         title: (c) => c.name,
         columns: [
@@ -41,22 +44,24 @@ const TYPES = {
             { label: 'Job', render: (r) => el('span', { class: 'mono wrap', text: r.name }) },
             { label: 'Queue', render: (r) => r.queue },
             { label: 'Connection', render: (r) => r.connection },
-            { label: 'Status', render: (r) => badge(r.jobStatus, jobTone(r.jobStatus)) },
+            { label: 'Status', cls: 'text-center', render: (r) => badge(r.jobStatus, jobTone(r.jobStatus), true) },
             { label: 'Tries', render: (r) => (r.tries === null || r.tries === undefined ? '' : String(r.tries)) },
         ],
     },
     commands: {
         label: 'Commands',
+        entryType: 'command',
         summarize: (c) => ({ command: c.command, exitCode: c.exit_code }),
         title: (c) => c.command,
         columns: [
             when,
             { label: 'Command', render: (r) => el('span', { class: 'mono wrap', text: r.command }) },
-            { label: 'Exit code', render: (r) => badge(r.exitCode, Number(r.exitCode) === 0 ? 'ok' : 'bad') },
+            { label: 'Exit code', cls: 'text-center', render: (r) => badge(r.exitCode, Number(r.exitCode) === 0 ? 'ok' : 'bad', true) },
         ],
     },
     schedule: {
         label: 'Schedule',
+        entryType: 'schedule',
         summarize: (c) => ({ command: c.command, description: c.description, expression: c.expression }),
         title: (c) => c.description || c.command,
         columns: [
@@ -68,6 +73,7 @@ const TYPES = {
     },
     exceptions: {
         label: 'Exceptions',
+        entryType: 'exception',
         summarize: (c) => ({ cls: c.class, message: c.message, location: projectPath(c.file) + ':' + (c.line || ''), occurrences: c.occurrences }),
         title: (c) => shortClass(c.class),
         columns: [
@@ -80,6 +86,7 @@ const TYPES = {
     },
     logs: {
         label: 'Logs',
+        entryType: 'log',
         summarize: (c) => ({ level: c.level, message: clip(c.message, 2000) }),
         title: (c) => clip(c.message, 120),
         columns: [
@@ -90,18 +97,20 @@ const TYPES = {
     },
     queries: {
         label: 'Queries',
+        entryType: 'query',
         summarize: (c) => ({ sql: clip(c.sql, 2000), time: c.time, slow: c.slow, location: c.file ? projectPath(c.file) + ':' + c.line : '', connection: c.connection }),
         title: (c) => 'Query (' + ms(c.time) + ')',
         columns: [
             when,
             { label: 'SQL', render: (r) => el('div', { class: 'mono clip', title: clip(r.sql, 600), text: r.sql }) },
-            { label: 'Time', render: (r) => (r.slow ? badge(ms(r.time), 'bad') : el('span', { class: 'text-nowrap', text: ms(r.time) })) },
+            { label: 'Time', cls: 'text-end', render: (r) => (r.slow ? badge(ms(r.time), 'bad') : el('span', { class: 'ti-num', text: ms(r.time) })) },
             { label: 'Location', render: (r) => el('span', { class: 'mono wrap', text: r.location }) },
         ],
         numeric: (r) => r.time,
     },
     mail: {
         label: 'Mail',
+        entryType: 'mail',
         summarize: (c) => ({ mailable: c.mailable, subject: c.subject, to: Object.keys(c.to || {}).join(', '), queued: c.queued }),
         title: (c) => c.subject || shortClass(c.mailable),
         columns: [
@@ -113,6 +122,7 @@ const TYPES = {
     },
     notifications: {
         label: 'Notifications',
+        entryType: 'notification',
         summarize: (c) => ({ notification: c.notification, channel: c.channel, notifiable: c.notifiable }),
         title: (c) => shortClass(c.notification),
         columns: [
@@ -124,6 +134,7 @@ const TYPES = {
     },
     events: {
         label: 'Events',
+        entryType: 'event',
         summarize: (c) => ({ name: c.name, listeners: (c.listeners || []).length }),
         title: (c) => c.name,
         columns: [
@@ -134,6 +145,7 @@ const TYPES = {
     },
     cache: {
         label: 'Cache',
+        entryType: 'cache',
         summarize: (c) => ({ action: c.type, key: c.key }),
         title: (c) => (c.type || '') + ' ' + (c.key || ''),
         columns: [
@@ -144,6 +156,7 @@ const TYPES = {
     },
     redis: {
         label: 'Redis',
+        entryType: 'redis',
         summarize: (c) => ({ command: clip(c.command, 1000), time: c.time, connection: c.connection }),
         title: (c) => clip(c.command, 80),
         columns: [

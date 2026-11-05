@@ -3,6 +3,8 @@
 namespace ByIftikhar\TelescopeInspector;
 
 use ByIftikhar\TelescopeInspector\Http\Controllers\InspectorController;
+use ByIftikhar\TelescopeInspector\Http\Controllers\PruneController;
+use ByIftikhar\TelescopeInspector\Pruning\EntryPruner;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
@@ -11,6 +13,30 @@ class TelescopeInspectorServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->mergeConfigFrom(__DIR__.'/../config/telescope-inspector.php', 'telescope-inspector');
+
+        $this->app->bind(EntryPruner::class, fn (): EntryPruner => new EntryPruner(
+            (int) config('telescope-inspector.prune.chunk_size', 1000),
+        ));
+
+        // Runs after every package has merged its config but before Telescope's own
+        // boot decides whether to record the current request.
+        $this->app->booting(fn () => $this->hideInspectorFromTelescope());
+    }
+
+    /**
+     * The inspector's own page and endpoints are tooling, not application traffic:
+     * add them to Telescope's ignore_paths so they never show up as entries.
+     */
+    private function hideInspectorFromTelescope(): void
+    {
+        if (! config('telescope-inspector.enabled')) {
+            return;
+        }
+
+        $path = trim(config('telescope-inspector.path'), '/');
+        $ignored = config('telescope.ignore_paths', []);
+
+        config(['telescope.ignore_paths' => array_values(array_unique([...$ignored, $path, $path.'/*']))]);
     }
 
     public function boot(): void
@@ -24,16 +50,24 @@ class TelescopeInspectorServiceProvider extends ServiceProvider
         }
 
         if (config('telescope-inspector.enabled')) {
-            $this->registerRoute();
+            $this->registerRoutes();
         }
     }
 
-    private function registerRoute(): void
+    private function registerRoutes(): void
     {
+        $path = trim(config('telescope-inspector.path'), '/');
+
         Route::middleware($this->middleware())
             ->domain(config('telescope.domain'))
-            ->get(config('telescope-inspector.path'), InspectorController::class)
-            ->name('telescope-inspector');
+            ->group(function () use ($path): void {
+                Route::get($path, InspectorController::class)->name('telescope-inspector');
+
+                if (config('telescope-inspector.prune.enabled')) {
+                    Route::post($path.'/prune/preview', [PruneController::class, 'preview'])->name('telescope-inspector.prune.preview');
+                    Route::post($path.'/prune', [PruneController::class, 'destroy'])->name('telescope-inspector.prune');
+                }
+            });
     }
 
     /**
