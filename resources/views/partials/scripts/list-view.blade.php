@@ -109,7 +109,9 @@ function renderListBody(type) {
     const parts = [];
     if (st.error) {
         parts.push(errorBox(st.error));
-    } else if (!st.running && !st.rows.length) {
+    } else if (st.running) {
+        parts.push(loader(loadingText(st, filtered)));
+    } else if (!st.rows.length) {
         parts.push(el('div', { class: 'ti-empty', text: st.exhausted ? 'Nothing found.' : 'No entries yet.' }));
     }
     if (!st.running && !st.exhausted && !st.error) {
@@ -124,5 +126,12 @@ function renderListBody(type) {
         parts.push(el('div', { class: 'ti-note', text: 'Reached the end of the recorded entries.' }));
     }
     footer.replaceChildren(...parts);
+}
+
+function loadingText(st, filtered) {
+    if (filtered) {
+        return 'Searching older entries (' + st.scanned.toLocaleString() + ' checked so far)...';
+    }
+    return st.rows.length ? 'Loading older entries...' : 'Loading entries...';
 }
 @endverbatim

@@ -26,6 +26,13 @@ function el(tag, attrs, children) {
     return node;
 }
 
+function loader(text) {
+    return el('div', { class: 'ti-loader', role: 'status' }, [
+        el('span', { class: 'spinner-border spinner-border-sm', 'aria-hidden': 'true' }),
+        el('span', { text: text }),
+    ]);
+}
+
 function badge(text, tone) {
     return el('span', { class: 'ti-badge ti-b-' + (tone || 'mute'), text: String(text) });
 }

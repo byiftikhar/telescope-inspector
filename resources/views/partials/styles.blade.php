@@ -222,6 +222,19 @@
         color: var(--ti-muted);
     }
 
+    .ti-loader {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 0;
+        color: var(--ti-muted);
+        font-size: 12px;
+    }
+
+    .ti-loader .spinner-border {
+        color: var(--ti-coffee);
+    }
+
     .ti-kv {
         width: 100%;
     }

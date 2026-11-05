@@ -71,7 +71,7 @@ function loadRelated(other, entry, batchId, pane) {
     };
 
     const more = async () => {
-        footer.replaceChildren(el('span', { class: 'ti-note', text: 'Loading...' }));
+        footer.replaceChildren(loader(rows.length ? 'Loading more...' : 'Loading...'));
         try {
             const body = { batch_id: batchId, take: RELATED_TAKE };
             if (cursor) body.before = cursor;

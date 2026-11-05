@@ -25,7 +25,7 @@ function isScalar(value) {
 
 async function renderDetail(type, uuid, batchId) {
     const main = document.getElementById('ti-main');
-    main.replaceChildren(el('div', { class: 'ti-empty', text: 'Loading entry...' }));
+    main.replaceChildren(el('div', { class: 'ti-empty' }, loader('Loading entry...')));
 
     let entry;
     try {
